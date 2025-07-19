@@ -111,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
           const mockUser: AuthUser = {
             id: '1',
             email: userData.email,
+            name: userData.name,
             emailVerified: false,
             createdAt: new Date(),
           };

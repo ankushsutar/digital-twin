@@ -31,6 +31,7 @@ export interface UserPreferences {
 export interface AuthUser {
   id: string;
   email: string;
+  name?: string;
   emailVerified: boolean;
   createdAt: Date;
 }
