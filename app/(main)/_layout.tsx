@@ -12,39 +12,31 @@ export default function MainLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#667eea',
-        tabBarInactiveTintColor: 'rgba(102, 126, 234, 0.4)',
+        tabBarInactiveTintColor: '#999',
         tabBarStyle: {
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          borderTopWidth: 1,
-          borderTopColor: 'rgba(255, 255, 255, 0.4)',
-          paddingBottom: insets.bottom,
-          paddingTop: 2,
-          height: Platform.OS === 'ios' ? 40 + insets.bottom : 35 + insets.bottom,
-          shadowColor: '#667eea',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderTopWidth: 0,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          paddingBottom: insets.bottom + 4,
+          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 50 + insets.bottom : 45 + insets.bottom,
+          shadowColor: '#000',
           shadowOffset: {
             width: 0,
-            height: -6,
+            height: -2,
           },
-          shadowOpacity: 0.15,
-          shadowRadius: 16,
-          elevation: 25,
-          // Glassmorphism effect
-          backdropFilter: 'blur(25px)',
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 9,
-          fontWeight: '700',
-          marginTop: 1,
-          marginBottom: Platform.OS === 'ios' ? 0 : 2,
-          letterSpacing: 0.5,
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
         },
         tabBarIconStyle: {
           marginTop: 2,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 2,
         },
       }}
     >
@@ -55,7 +47,7 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "home" : "home-outline"} 
-              size={focused ? size + 2 : size} 
+              size={size} 
               color={color} 
             />
           ),
@@ -68,7 +60,7 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "chatbubbles" : "chatbubbles-outline"} 
-              size={focused ? size + 2 : size} 
+              size={size} 
               color={color} 
             />
           ),
@@ -81,7 +73,7 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "person" : "person-outline"} 
-              size={focused ? size + 2 : size} 
+              size={size} 
               color={color} 
             />
           ),

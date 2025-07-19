@@ -3,14 +3,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { useAuthStore } from '../../store/authStore';
@@ -189,17 +189,17 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       
-      {/* Header with gradient background */}
+      {/* Modern Header with Gradient Background */}
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#E3F2FD', '#F3E5F5']}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Animated.View style={[styles.greetingContainer, { opacity: fadeAnim }]}>
-              <Text style={styles.greeting}>Hello, {getUserGreeting()}! 👋</Text>
-              <Text style={styles.subtitle}>How are you feeling today?</Text>
-            </Animated.View>
+          <View style={styles.headerTop}>
+            <View style={styles.welcomeSection}>
+              <Text style={styles.welcomeText}>Digital Twin</Text>
+              <Text style={styles.userName}>Hey, {getUserGreeting()} 👋</Text>
+            </View>
             <TouchableOpacity 
               style={styles.profileButton}
               onPress={() => {
@@ -212,9 +212,27 @@ export default function HomeScreen() {
               }}
             >
               <View style={styles.profileAvatar}>
-                <Ionicons name="person" size={24} color="#667eea" />
+                <Ionicons name="person" size={20} color="#667eea" />
               </View>
             </TouchableOpacity>
+          </View>
+          
+          <View style={styles.statusCardsRow}>
+            <View style={styles.headerStatusCard}>
+              <Ionicons name="heart" size={16} color="#667eea" />
+              <Text style={styles.headerStatusValue}>{getMoodAverage()}/10</Text>
+              <Text style={styles.headerStatusLabel}>Mood</Text>
+            </View>
+            <View style={styles.headerStatusCard}>
+              <Ionicons name="chatbubbles" size={16} color="#4CAF50" />
+              <Text style={styles.headerStatusValue}>24</Text>
+              <Text style={styles.headerStatusLabel}>Chats</Text>
+            </View>
+            <View style={styles.headerStatusCard}>
+              <Ionicons name="bulb" size={16} color="#FF9800" />
+              <Text style={styles.headerStatusValue}>{insights.length}</Text>
+              <Text style={styles.headerStatusLabel}>Insights</Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -224,53 +242,54 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Mood Card */}
+        {/* Modern Stats Cards Row */}
         <Animated.View 
           style={[
-            styles.moodCard,
+            styles.statsRow,
             { 
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }]
             }
           ]}
         >
-          <LinearGradient
-            colors={getMoodColor()}
-            style={styles.moodGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.moodContent}>
-              <View style={styles.moodHeader}>
-                <Ionicons name="heart" size={28} color="#fff" />
-                <Text style={styles.moodTitle}>Your Mood</Text>
-              </View>
-              <View style={styles.moodDisplay}>
-                <Animated.Text 
-                  style={[
-                    styles.moodEmoji,
-                    { transform: [{ scale: scaleAnim }] }
-                  ]}
-                >
-                  {getMoodEmoji()}
-                </Animated.Text>
-                <Text style={styles.moodDescription}>
-                  {getMoodDescription()}
-                </Text>
-                <View style={styles.moodStats}>
-                  <Text style={styles.moodStatText}>
-                    Average: {getMoodAverage()}/10
-                  </Text>
-                  <Text style={styles.moodTrendText}>
-                    {getMoodTrendText()}
-                  </Text>
-                </View>
-              </View>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="trending-up" size={20} color="#4CAF50" />
             </View>
-          </LinearGradient>
+            <Text style={styles.statValue}>{getMoodTrendText().includes('Improving') ? '+12%' : getMoodTrendText().includes('Declining') ? '-8%' : '0%'}</Text>
+            <Text style={styles.statLabel}>Mood Trend</Text>
+            <View style={styles.statTrend}>
+              <Ionicons name="calendar" size={14} color="#666" />
+              <Text style={styles.statTrendText}>This week</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="time" size={20} color="#FF9800" />
+            </View>
+            <Text style={styles.statValue}>2.5h</Text>
+            <Text style={styles.statLabel}>Avg. Session</Text>
+            <View style={styles.statTrend}>
+              <Ionicons name="time-outline" size={14} color="#666" />
+              <Text style={styles.statTrendText}>Per chat</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="analytics" size={20} color="#9C27B0" />
+            </View>
+            <Text style={styles.statValue}>85%</Text>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <View style={styles.statTrend}>
+              <Ionicons name="checkmark-circle" size={14} color="#4CAF50" />
+              <Text style={styles.statTrendText}>AI Model</Text>
+            </View>
+          </View>
         </Animated.View>
 
-        {/* Quick Actions Grid */}
+        {/* Modern Quick Actions */}
         <Animated.View 
           style={[
             styles.section,
@@ -281,7 +300,7 @@ export default function HomeScreen() {
           ]}
         >
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
+          <View style={styles.actionsContainer}>
             {quickActions.map((action, index) => (
               <Animated.View
                 key={action.id}
@@ -297,23 +316,20 @@ export default function HomeScreen() {
                   style={styles.actionButton}
                   onPress={() => handleQuickAction(action.id)}
                 >
-                  <LinearGradient
-                    colors={action.gradient}
-                    style={styles.actionGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Ionicons name={action.icon as any} size={28} color="#fff" />
+                  <View style={styles.actionContent}>
+                    <View style={[styles.actionIconContainer, { backgroundColor: action.color + '20' }]}>
+                      <Ionicons name={action.icon as any} size={24} color={action.color} />
+                    </View>
                     <Text style={styles.actionTitle}>{action.title}</Text>
                     <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </Animated.View>
             ))}
           </View>
         </Animated.View>
 
-        {/* AI Insights */}
+        {/* Modern AI Insights */}
         {insights && insights.length > 0 && (
           <Animated.View 
             style={[
@@ -326,13 +342,15 @@ export default function HomeScreen() {
           >
             <View style={styles.insightsCard}>
               <View style={styles.insightsHeader}>
-                <Ionicons name="bulb" size={24} color="#667eea" />
+                <View style={styles.insightsIconContainer}>
+                  <Ionicons name="bulb" size={20} color="#667eea" />
+                </View>
                 <Text style={styles.insightsTitle}>AI Insights</Text>
               </View>
               {insights.map((insight, index) => (
                 <View key={index} style={styles.insightItem}>
                   <View style={styles.insightIcon}>
-                    <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                    <Ionicons name="checkmark-circle" size={14} color="#4CAF50" />
                   </View>
                   <Text style={styles.insightText}>{insight}</Text>
                 </View>
@@ -341,7 +359,7 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* Digital Twin Status */}
+        {/* Modern Digital Twin Status */}
         <Animated.View 
           style={[
             styles.section,
@@ -360,7 +378,9 @@ export default function HomeScreen() {
             >
               <View style={styles.statusContent}>
                 <View style={styles.statusHeader}>
-                  <Ionicons name="person" size={28} color="#fff" />
+                  <View style={styles.statusIconContainer}>
+                    <Ionicons name="person" size={24} color="#fff" />
+                  </View>
                   <Text style={styles.statusTitle}>Digital Twin</Text>
                 </View>
                 <Text style={styles.statusText}>
@@ -390,169 +410,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   headerGradient: {
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
-  header: {
+    paddingTop: 16,
+    paddingBottom: 20,
     paddingHorizontal: 20,
   },
-  headerContent: {
+  header: {
+    paddingBottom: 10,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 16,
   },
-  greetingContainer: {
+  welcomeSection: {
     flex: 1,
   },
-  greeting: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
+  welcomeText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#fff',
-    opacity: 0.9,
+  userName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: -0.5,
   },
   profileButton: {
     marginLeft: 16,
   },
   profileAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  moodCard: {
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  moodGradient: {
-    padding: 24,
-  },
-  moodContent: {
-    alignItems: 'center',
-  },
-  moodHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  moodTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 8,
-  },
-  moodDisplay: {
-    alignItems: 'center',
-  },
-  moodEmoji: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
-  moodDescription: {
-    fontSize: 18,
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontWeight: '600',
-  },
-  moodStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  moodStatText: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.9,
-  },
-  moodTrendText: {
-    fontSize: 14,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionCard: {
-    width: (width - 60) / 2,
-    marginBottom: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  actionButton: {
-    height: 120,
-  },
-  actionGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  actionSubtitle: {
-    fontSize: 12,
-    color: '#fff',
-    opacity: 0.9,
-    textAlign: 'center',
-  },
-  insightsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -560,34 +455,118 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
-  insightsHeader: {
+  statusCardsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  headerStatusCard: {
+    width: (width - 60) / 3,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
     alignItems: 'center',
-    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  insightsTitle: {
+  headerStatusValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 8,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 4,
   },
-  insightItem: {
+  headerStatusLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  statsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  statCard: {
+    width: (width - 60) / 3,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
-  insightIcon: {
-    marginRight: 12,
+  statValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 4,
   },
-  insightText: {
-    fontSize: 14,
+  statLabel: {
+    fontSize: 13,
     color: '#666',
-    flex: 1,
-    lineHeight: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  statusCard: {
+  statTrend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  statTrendText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 20,
+    letterSpacing: -0.5,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  actionCard: {
+    width: (width - 60) / 2,
+    marginBottom: 16,
+    backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -595,12 +574,101 @@ const styles = StyleSheet.create({
       width: 0,
       height: 8,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 16,
-    elevation: 12,
+    elevation: 10,
+  },
+  actionButton: {
+    padding: 20,
+  },
+  actionContent: {
+    alignItems: 'center',
+  },
+  actionIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  actionSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  insightsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  insightsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  insightsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  insightsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: -0.5,
+  },
+  insightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  insightIcon: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  insightText: {
+    fontSize: 15,
+    color: '#4a4a4a',
+    flex: 1,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  statusCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 12,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 15,
   },
   statusGradient: {
-    padding: 24,
+    padding: 28,
   },
   statusContent: {
     alignItems: 'center',
@@ -608,24 +676,38 @@ const styles = StyleSheet.create({
   statusHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  statusIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   statusTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#fff',
-    marginLeft: 8,
+    letterSpacing: -0.5,
   },
   statusText: {
     fontSize: 16,
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     lineHeight: 24,
+    fontWeight: '500',
   },
   statusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   statusDot: {
     width: 8,
