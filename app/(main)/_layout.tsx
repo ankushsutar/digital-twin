@@ -18,8 +18,8 @@ export default function MainLayout() {
           borderTopWidth: 1,
           borderTopColor: 'rgba(255, 255, 255, 0.4)',
           paddingBottom: insets.bottom,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 60 + insets.bottom : 50 + insets.bottom,
+          paddingTop: 2,
+          height: Platform.OS === 'ios' ? 40 + insets.bottom : 35 + insets.bottom,
           shadowColor: '#667eea',
           shadowOffset: {
             width: 0,
@@ -34,17 +34,17 @@ export default function MainLayout() {
           borderTopRightRadius: 24,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: '700',
-          marginTop: 2,
-          marginBottom: Platform.OS === 'ios' ? 0 : 4,
+          marginTop: 1,
+          marginBottom: Platform.OS === 'ios' ? 0 : 2,
           letterSpacing: 0.5,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
         },
         tabBarItemStyle: {
-          paddingVertical: 4,
+          paddingVertical: 2,
         },
       }}
     >

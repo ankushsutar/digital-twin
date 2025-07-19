@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -30,8 +31,7 @@ export default function ProfileScreen() {
             try {
               setIsLoggingOut(true);
               await logout();
-              // The root layout will automatically redirect to onboarding/login
-              // due to the authentication check we added
+              router.replace('/(auth)/login');
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('Error', 'Failed to logout. Please try again.');

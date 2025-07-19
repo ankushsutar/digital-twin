@@ -26,7 +26,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
         <ErrorBoundary fallback={<ErrorFallback />}>
           <Stack
             screenOptions={{
