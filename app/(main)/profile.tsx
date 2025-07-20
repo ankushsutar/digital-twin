@@ -1,169 +1,242 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { useAuthStore } from '../../store/authStore';
 import { useDigitalTwinStore } from '../../store/digitalTwinStore';
 
 export default function ProfileScreen() {
-  const { user, logout, isLoading } = useAuthStore();
-  const { profile, resetProfile } = useDigitalTwinStore();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user, logout } = useAuthStore();
+  const { profile, moodHistory, chatHistory } = useDigitalTwinStore();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'Sign Out',
+      'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
+        { 
+          text: 'Sign Out', 
           style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsLoggingOut(true);
-              await logout();
-              router.replace('/(auth)/login');
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
-        },
+          onPress: () => {
+            logout();
+            router.replace('/login');
+          }
+        }
       ]
     );
   };
 
-  // Show loading spinner if logging out
-  if (isLoggingOut) {
-    return <LoadingSpinner fullScreen text="Logging out..." />;
-  }
+  const handleNavigation = (screen: string) => {
+    try {
+      router.push(`/(main)/${screen}` as any);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      Alert.alert('Error', 'Unable to navigate. Please try again.');
+    }
+  };
+
+  const getUserName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
+  };
+
+  const getUserEmail = () => {
+    return user?.email || 'No email provided';
+  };
+
+  const getStats = () => {
+    const totalMoods = moodHistory.length;
+    const totalChats = chatHistory.length;
+    const totalMessages = chatHistory.reduce((sum, session) => sum + session.messages.length, 0);
+    
+    return { totalMoods, totalChats, totalMessages };
+  };
 
   const menuItems = [
     {
+      id: 'personality',
       icon: 'person',
-      title: 'Personal Information',
-      subtitle: 'Update your profile details',
-      onPress: () => {},
+      title: 'Personality Settings',
+      subtitle: 'Customize your AI companion',
+      color: '#4CAF50',
+      onPress: () => handleNavigation('personality'),
     },
     {
+      id: 'insights',
+      icon: 'analytics',
+      title: 'Insights & Analytics',
+      subtitle: 'View your patterns and trends',
+      color: '#FF9800',
+      onPress: () => handleNavigation('insights'),
+    },
+    {
+      id: 'sessions',
+      icon: 'time',
+      title: 'Chat History',
+      subtitle: 'View past conversations',
+      color: '#9C27B0',
+      onPress: () => handleNavigation('sessions'),
+    },
+    {
+      id: 'settings',
       icon: 'settings',
-      title: 'Preferences',
-      subtitle: 'Customize your experience',
-      onPress: () => {},
+      title: 'App Settings',
+      subtitle: 'Configure app preferences',
+      color: '#607D8B',
+      onPress: () => Alert.alert('Settings', 'Settings feature coming soon!'),
     },
     {
-      icon: 'shield-checkmark',
-      title: 'Privacy & Security',
-      subtitle: 'Manage your data and privacy',
-      onPress: () => {},
-    },
-    {
+      id: 'help',
       icon: 'help-circle',
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
-      onPress: () => {},
-    },
-    {
-      icon: 'information-circle',
-      title: 'About',
-      subtitle: 'App version and information',
-      onPress: () => {},
+      color: '#2196F3',
+      onPress: () => Alert.alert('Help', 'Help feature coming soon!'),
     },
   ];
 
+  const stats = getStats();
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerSubtitle}>
+          Manage your account and preferences
+        </Text>
+      </View>
 
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* User Info Card */}
         <View style={styles.userCard}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person-circle" size={80} color="#667eea" />
+          <View style={styles.userAvatar}>
+            <Ionicons name="person" size={32} color="#667eea" />
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {user?.name || user?.email?.split('@')[0] || 'User'}
-            </Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
-            <Text style={styles.userStatus}>
-              {profile ? 'Digital Twin Active' : 'Setting up Digital Twin...'}
-            </Text>
+            <Text style={styles.userName}>{getUserName()}</Text>
+            <Text style={styles.userEmail}>{getUserEmail()}</Text>
+          </View>
+          <TouchableOpacity style={styles.editButton}>
+            <Ionicons name="pencil" size={16} color="#667eea" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Overview */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: '#ff6b6b' + '20' }]}>
+              <Ionicons name="heart" size={20} color="#ff6b6b" />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>{stats.totalMoods}</Text>
+              <Text style={styles.statLabel}>Moods Tracked</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: '#4CAF50' + '20' }]}>
+              <Ionicons name="chatbubble" size={20} color="#4CAF50" />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>{stats.totalChats}</Text>
+              <Text style={styles.statLabel}>Chat Sessions</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: '#FF9800' + '20' }]}>
+              <Ionicons name="chatbubbles" size={20} color="#FF9800" />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>{stats.totalMessages}</Text>
+              <Text style={styles.statLabel}>Messages</Text>
+            </View>
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuSection}>
-          {menuItems.map((item, index) => (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Features & Settings</Text>
+          <View style={styles.menuContainer}>
+            {menuItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.menuItem}
+                onPress={item.onPress}
+              >
+                <View style={[styles.menuIcon, { backgroundColor: item.color + '20' }]}>
+                  <Ionicons name={item.icon as any} size={24} color={item.color} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>{item.title}</Text>
+                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Account Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.menuContainer}>
             <TouchableOpacity
-              key={index}
               style={styles.menuItem}
-              onPress={item.onPress}
+              onPress={() => Alert.alert('Export Data', 'Export feature coming soon!')}
             >
-              <View style={styles.menuIcon}>
-                <Ionicons name={item.icon as any} size={24} color="#667eea" />
+              <View style={[styles.menuIcon, { backgroundColor: '#2196F3' + '20' }]}>
+                <Ionicons name="download" size={24} color="#2196F3" />
               </View>
               <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                <Text style={styles.menuTitle}>Export Data</Text>
+                <Text style={styles.menuSubtitle}>Download your data</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#ccc" />
             </TouchableOpacity>
-          ))}
+            
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => Alert.alert('Privacy', 'Privacy settings coming soon!')}
+            >
+              <View style={[styles.menuIcon, { backgroundColor: '#607D8B' + '20' }]}>
+                <Ionicons name="shield-checkmark" size={24} color="#607D8B" />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Privacy & Security</Text>
+                <Text style={styles.menuSubtitle}>Manage your privacy</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionSection}>
+        {/* Sign Out Button */}
+        <View style={styles.signOutSection}>
           <TouchableOpacity
-            style={styles.resetButton}
-            onPress={() => {
-              Alert.alert(
-                'Reset Digital Twin',
-                'This will reset your AI companion. Are you sure?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Reset',
-                    style: 'destructive',
-                    onPress: resetProfile,
-                  },
-                ]
-              );
-            }}
-          >
-            <Ionicons name="refresh" size={20} color="#ff6b6b" />
-            <Text style={styles.resetButtonText}>Reset Digital Twin</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.logoutButton, isLoggingOut && styles.logoutButtonDisabled]} 
+            style={styles.signOutButton}
             onPress={handleLogout}
-            disabled={isLoggingOut}
           >
-            {isLoggingOut ? (
-              <Ionicons name="hourglass" size={20} color="#fff" />
-            ) : (
-              <Ionicons name="log-out" size={20} color="#fff" />
-            )}
-            <Text style={styles.logoutButtonText}>
-              {isLoggingOut ? 'Logging out...' : 'Logout'}
-            </Text>
+            <Ionicons name="log-out" size={20} color="#F44336" />
+            <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
   );
@@ -174,25 +247,82 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  scrollView: {
-    flex: 1,
-  },
   header: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 60,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f0f0f0',
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 22,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
   },
   userCard: {
     backgroundColor: '#fff',
-    margin: 16,
     borderRadius: 16,
     padding: 20,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  userAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f0f4ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#666',
+  },
+  editButton: {
+    padding: 8,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 4,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -203,32 +333,39 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  avatarContainer: {
-    marginBottom: 16,
-  },
-  userInfo: {
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: '#666',
     marginBottom: 8,
   },
-  userStatus: {
-    fontSize: 14,
-    color: '#667eea',
-    fontWeight: '600',
+  statContent: {
+    alignItems: 'center',
   },
-  menuSection: {
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 16,
+  },
+  menuContainer: {
     backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -250,7 +387,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f8f9fa',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -261,48 +397,41 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#1a1a1a',
     marginBottom: 2,
   },
   menuSubtitle: {
     fontSize: 14,
     color: '#666',
   },
-  actionSection: {
-    padding: 16,
-    gap: 12,
+  signOutSection: {
+    marginTop: 20,
   },
-  resetButton: {
+  signOutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    padding: 16,
+    paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ff6b6b',
+    borderColor: '#F44336',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  resetButtonText: {
+  signOutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ff6b6b',
+    color: '#F44336',
     marginLeft: 8,
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ff6b6b',
-    padding: 16,
-    borderRadius: 12,
-  },
-  logoutButtonDisabled: {
-    opacity: 0.7,
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginLeft: 8,
+  bottomSpacing: {
+    height: 20,
   },
 }); 

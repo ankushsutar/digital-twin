@@ -12,31 +12,26 @@ export default function MainLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#667eea',
-        tabBarInactiveTintColor: '#999',
+        tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: 'white',
           borderTopWidth: 0,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          paddingBottom: insets.bottom + 4,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 50 + insets.bottom : 45 + insets.bottom,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: -2,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          elevation: 10,
+          paddingBottom: 0,
+          paddingTop: 6,
+          height: Platform.OS === 'ios' ? 40 + insets.bottom : 25 + insets.bottom,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          marginTop: 2,
+          fontSize: 10,
+          fontWeight: '500',
+          marginTop: 1,
         },
         tabBarIconStyle: {
-          marginTop: 2,
+          marginTop: 0,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 1,
         },
       }}
     >
@@ -47,7 +42,7 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "home" : "home-outline"} 
-              size={size} 
+              size={focused ? 22 : 20} 
               color={color} 
             />
           ),
@@ -60,7 +55,7 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "chatbubbles" : "chatbubbles-outline"} 
-              size={size} 
+              size={focused ? 22 : 20} 
               color={color} 
             />
           ),
@@ -73,10 +68,35 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "person" : "person-outline"} 
-              size={size} 
+              size={focused ? 22 : 20} 
               color={color} 
             />
           ),
+        }}
+      />
+      {/* Hide other screens from tab bar */}
+      <Tabs.Screen
+        name="mood"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="personality"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="insights"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="sessions"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

@@ -1,33 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  Animated,
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { openAIService } from '../../services/openai';
 import { useAuthStore } from '../../store/authStore';
 import { useDigitalTwinStore } from '../../store/digitalTwinStore';
 
-const { width } = Dimensions.get('window');
-
 export default function HomeScreen() {
   const { user } = useAuthStore();
-  const { profile, getMoodTrend, getPersonalityInsights, loadingState } = useDigitalTwinStore();
+  const { profile, getMoodTrend, getPersonalityInsights, loadingState, initializeProfile } = useDigitalTwinStore();
+  const [isApiConfigured, setIsApiConfigured] = useState(false);
   
-  // Safely get mood trend and insights with error handling
   const [moodTrend, setMoodTrend] = useState(() => {
     try {
       return getMoodTrend();
     } catch (error) {
-      console.error('Error getting mood trend:', error);
       return { average: 5, trend: 'stable' as const };
     }
   });
@@ -36,39 +30,17 @@ export default function HomeScreen() {
     try {
       return getPersonalityInsights();
     } catch (error) {
-      console.error('Error getting insights:', error);
       return [];
     }
   });
 
-  // Animation values
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(50));
-  const [scaleAnim] = useState(new Animated.Value(0.8));
-
   useEffect(() => {
-    // Start animations when component mounts
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    if (!profile && user) {
+      initializeProfile(user.id);
+    }
+    setIsApiConfigured(openAIService.isApiConfigured());
+  }, [profile, user]);
 
-  // Update mood trend and insights when store changes
   useEffect(() => {
     try {
       setMoodTrend(getMoodTrend());
@@ -78,326 +50,205 @@ export default function HomeScreen() {
     }
   }, [profile]);
 
-  const getMoodEmoji = () => {
-    if (!moodTrend || !moodTrend.trend) return '😐';
-    if (moodTrend.trend === 'up') return '😊';
-    if (moodTrend.trend === 'down') return '😔';
-    return '😐';
+  const getMoodColor = () => {
+    if (!moodTrend || !moodTrend.trend) return '#667eea';
+    if (moodTrend.trend === 'up') return '#4CAF50';
+    if (moodTrend.trend === 'down') return '#FF9800';
+    return '#667eea';
   };
 
-  const getMoodColor = (): [string, string] => {
-    if (!moodTrend || !moodTrend.trend) return ['#2196F3', '#64B5F6'];
-    if (moodTrend.trend === 'up') return ['#4CAF50', '#81C784'];
-    if (moodTrend.trend === 'down') return ['#FF9800', '#FFB74D'];
-    return ['#2196F3', '#64B5F6'];
-  };
-
-  const getMoodDescription = () => {
-    if (!moodTrend || !moodTrend.trend) return 'Welcome to your Digital Twin!';
-    if (moodTrend.trend === 'up') return 'You\'re feeling great!';
-    if (moodTrend.trend === 'down') return 'Let\'s talk about it';
-    return 'Stable mood today';
-  };
-
-  const getMoodAverage = () => {
-    if (!moodTrend || !moodTrend.average) return '0.0';
-    return moodTrend.average.toFixed(1);
-  };
-
-  const getMoodTrendText = () => {
-    if (!moodTrend || !moodTrend.trend) return '→ New';
-    if (moodTrend.trend === 'up') return '↗ Improving';
-    if (moodTrend.trend === 'down') return '↘ Declining';
-    return '→ Stable';
-  };
-
-  const handleQuickAction = (action: string) => {
+  const handleNavigation = (screen: string) => {
     try {
-      switch (action) {
-        case 'chat':
-          router.push('/chat');
-          break;
-        case 'insights':
-          Alert.alert('Insights', 'Analytics feature coming soon!');
-          break;
-        case 'settings':
-          router.push('/profile');
-          break;
-        case 'help':
-          Alert.alert('Help', 'Support feature coming soon!');
-          break;
-        default:
-          break;
-      }
+      router.push(`/(main)/${screen}` as any);
     } catch (error) {
       console.error('Navigation error:', error);
       Alert.alert('Error', 'Unable to navigate. Please try again.');
     }
   };
 
-  const quickActions = [
-    {
-      id: 'chat',
-      icon: 'chatbubbles',
-      title: 'Start Chat',
-      subtitle: 'Talk to your AI',
-      color: '#667eea',
-      gradient: ['#667eea', '#764ba2'] as [string, string],
-    },
-    {
-      id: 'insights',
-      icon: 'analytics',
-      title: 'Insights',
-      subtitle: 'View analytics',
-      color: '#4CAF50',
-      gradient: ['#4CAF50', '#81C784'] as [string, string],
-    },
-    {
-      id: 'settings',
-      icon: 'settings',
-      title: 'Settings',
-      subtitle: 'Customize app',
-      color: '#FF9800',
-      gradient: ['#FF9800', '#FFB74D'] as [string, string],
-    },
-    {
-      id: 'help',
-      icon: 'help-circle',
-      title: 'Help',
-      subtitle: 'Get support',
-      color: '#9C27B0',
-      gradient: ['#9C27B0', '#BA68C8'] as [string, string],
-    },
-  ];
-
   const getUserGreeting = () => {
     try {
       if (user?.name) return user.name;
       if (user?.email) return user.email.split('@')[0];
-      return 'User';
+      return 'there';
     } catch (error) {
-      console.error('Error getting user greeting:', error);
-      return 'User';
+      return 'there';
     }
   };
 
-  // Show loading spinner if store is loading
   if (loadingState === 'loading') {
-    return <LoadingSpinner fullScreen text="Loading your Digital Twin..." />;
+    return (
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingContent}>
+          <Ionicons name="person" size={48} color="#667eea" />
+          <Text style={styles.loadingText}>Setting up your Digital Twin...</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      
-      {/* Modern Header with Gradient Background */}
-      <LinearGradient
-        colors={['#E3F2FD', '#F3E5F5']}
-        style={styles.headerGradient}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View style={styles.welcomeSection}>
-              <Text style={styles.welcomeText}>Digital Twin</Text>
-              <Text style={styles.userName}>Hey, {getUserGreeting()} 👋</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.profileButton}
-              onPress={() => {
-                try {
-                  router.push('/profile');
-                } catch (error) {
-                  console.error('Navigation error:', error);
-                  Alert.alert('Error', 'Unable to navigate to profile.');
-                }
-              }}
-            >
-              <View style={styles.profileAvatar}>
-                <Ionicons name="person" size={20} color="#667eea" />
-              </View>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.statusCardsRow}>
-            <View style={styles.headerStatusCard}>
-              <Ionicons name="heart" size={16} color="#667eea" />
-              <Text style={styles.headerStatusValue}>{getMoodAverage()}/10</Text>
-              <Text style={styles.headerStatusLabel}>Mood</Text>
-            </View>
-            <View style={styles.headerStatusCard}>
-              <Ionicons name="chatbubbles" size={16} color="#4CAF50" />
-              <Text style={styles.headerStatusValue}>24</Text>
-              <Text style={styles.headerStatusLabel}>Chats</Text>
-            </View>
-            <View style={styles.headerStatusCard}>
-              <Ionicons name="bulb" size={16} color="#FF9800" />
-              <Text style={styles.headerStatusValue}>{insights.length}</Text>
-              <Text style={styles.headerStatusLabel}>Insights</Text>
-            </View>
-          </View>
-        </View>
-      </LinearGradient>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.appTitle}>Digital Twin</Text>
+        <TouchableOpacity 
+          style={styles.profileButton}
+          onPress={() => handleNavigation('profile')}
+        >
+          <Ionicons name="person-circle" size={24} color="#667eea" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Modern Stats Cards Row */}
-        <Animated.View 
-          style={[
-            styles.statsRow,
-            { 
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="trending-up" size={20} color="#4CAF50" />
-            </View>
-            <Text style={styles.statValue}>{getMoodTrendText().includes('Improving') ? '+12%' : getMoodTrendText().includes('Declining') ? '-8%' : '0%'}</Text>
-            <Text style={styles.statLabel}>Mood Trend</Text>
-            <View style={styles.statTrend}>
-              <Ionicons name="calendar" size={14} color="#666" />
-              <Text style={styles.statTrendText}>This week</Text>
-            </View>
+        {/* Demo Mode Warning */}
+        {!isApiConfigured && (
+          <View style={styles.demoBanner}>
+            <Ionicons name="information-circle" size={20} color="#667eea" />
+            <Text style={styles.demoText}>Demo Mode - Using mock responses</Text>
           </View>
-          
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="time" size={20} color="#FF9800" />
-            </View>
-            <Text style={styles.statValue}>2.5h</Text>
-            <Text style={styles.statLabel}>Avg. Session</Text>
-            <View style={styles.statTrend}>
-              <Ionicons name="time-outline" size={14} color="#666" />
-              <Text style={styles.statTrendText}>Per chat</Text>
-            </View>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="analytics" size={20} color="#9C27B0" />
-            </View>
-            <Text style={styles.statValue}>85%</Text>
-            <Text style={styles.statLabel}>Accuracy</Text>
-            <View style={styles.statTrend}>
-              <Ionicons name="checkmark-circle" size={14} color="#4CAF50" />
-              <Text style={styles.statTrendText}>AI Model</Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* Modern Quick Actions */}
-        <Animated.View 
-          style={[
-            styles.section,
-            { 
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsContainer}>
-            {quickActions.map((action, index) => (
-              <Animated.View
-                key={action.id}
-                style={[
-                  styles.actionCard,
-                  { 
-                    transform: [{ scale: scaleAnim }],
-                    opacity: fadeAnim
-                  }
-                ]}
-              >
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => handleQuickAction(action.id)}
-                >
-                  <View style={styles.actionContent}>
-                    <View style={[styles.actionIconContainer, { backgroundColor: action.color + '20' }]}>
-                      <Ionicons name={action.icon as any} size={24} color={action.color} />
-                    </View>
-                    <Text style={styles.actionTitle}>{action.title}</Text>
-                    <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
-            ))}
-          </View>
-        </Animated.View>
-
-        {/* Modern AI Insights */}
-        {insights && insights.length > 0 && (
-          <Animated.View 
-            style={[
-              styles.section,
-              { 
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }]
-              }
-            ]}
-          >
-            <View style={styles.insightsCard}>
-              <View style={styles.insightsHeader}>
-                <View style={styles.insightsIconContainer}>
-                  <Ionicons name="bulb" size={20} color="#667eea" />
-                </View>
-                <Text style={styles.insightsTitle}>AI Insights</Text>
-              </View>
-              {insights.map((insight, index) => (
-                <View key={index} style={styles.insightItem}>
-                  <View style={styles.insightIcon}>
-                    <Ionicons name="checkmark-circle" size={14} color="#4CAF50" />
-                  </View>
-                  <Text style={styles.insightText}>{insight}</Text>
-                </View>
-              ))}
-            </View>
-          </Animated.View>
         )}
 
-        {/* Modern Digital Twin Status */}
-        <Animated.View 
-          style={[
-            styles.section,
-            { 
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <View style={styles.statusCard}>
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.statusGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+        {/* Main Action Card */}
+        <View style={styles.mainActionCard}>
+          <View style={styles.mainActionContent}>
+            <View style={styles.mainActionText}>
+              <Text style={styles.mainActionTitle}>Start a Conversation</Text>
+              <Text style={styles.mainActionSubtitle}>
+                Chat with your personalized AI companion
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.mainActionButton}
+              onPress={() => handleNavigation('chat')}
             >
-              <View style={styles.statusContent}>
-                <View style={styles.statusHeader}>
-                  <View style={styles.statusIconContainer}>
-                    <Ionicons name="person" size={24} color="#fff" />
-                  </View>
-                  <Text style={styles.statusTitle}>Digital Twin</Text>
-                </View>
-                <Text style={styles.statusText}>
-                  {profile ? 'Your AI companion is ready to chat!' : 'Setting up your AI companion...'}
-                </Text>
-                <View style={styles.statusIndicator}>
-                  <View style={[styles.statusDot, { backgroundColor: profile ? '#4CAF50' : '#FF9800' }]} />
-                  <Text style={styles.statusIndicatorText}>
-                    {profile ? 'Active' : 'Initializing...'}
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
+              <Ionicons name="chatbubbles" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
 
-        {/* Bottom spacing */}
+        {/* Quick Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: getMoodColor() + '20' }]}>
+              <Ionicons name="heart" size={20} color={getMoodColor()} />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>{moodTrend.average.toFixed(1)}/10</Text>
+              <Text style={styles.statLabel}>Mood</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: '#4CAF50' + '20' }]}>
+              <Ionicons name="chatbubble" size={20} color="#4CAF50" />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>24</Text>
+              <Text style={styles.statLabel}>Chats</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: '#FF9800' + '20' }]}>
+              <Ionicons name="bulb" size={20} color="#FF9800" />
+            </View>
+            <View style={styles.statContent}>
+              <Text style={styles.statValue}>{insights.length}</Text>
+              <Text style={styles.statLabel}>Insights</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Feature Cards */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Features</Text>
+          
+          {/* Primary Features Row */}
+          <View style={styles.featureRow}>
+            <TouchableOpacity
+              style={styles.featureCard}
+              onPress={() => handleNavigation('mood')}
+            >
+              <View style={[styles.featureIcon, { backgroundColor: '#ff6b6b' + '20' }]}>
+                <Ionicons name="heart" size={28} color="#ff6b6b" />
+              </View>
+              <Text style={styles.featureTitle}>Track Mood</Text>
+              <Text style={styles.featureSubtitle}>Log your emotions</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.featureCard}
+              onPress={() => handleNavigation('personality')}
+            >
+              <View style={[styles.featureIcon, { backgroundColor: '#4CAF50' + '20' }]}>
+                <Ionicons name="person" size={28} color="#4CAF50" />
+              </View>
+              <Text style={styles.featureTitle}>Personality</Text>
+              <Text style={styles.featureSubtitle}>Customize AI</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Secondary Features Row */}
+          <View style={styles.featureRow}>
+            <TouchableOpacity
+              style={styles.featureCard}
+              onPress={() => handleNavigation('insights')}
+            >
+              <View style={[styles.featureIcon, { backgroundColor: '#FF9800' + '20' }]}>
+                <Ionicons name="analytics" size={28} color="#FF9800" />
+              </View>
+              <Text style={styles.featureTitle}>Insights</Text>
+              <Text style={styles.featureSubtitle}>View analytics</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.featureCard}
+              onPress={() => handleNavigation('sessions')}
+            >
+              <View style={[styles.featureIcon, { backgroundColor: '#9C27B0' + '20' }]}>
+                <Ionicons name="time" size={28} color="#9C27B0" />
+              </View>
+              <Text style={styles.featureTitle}>History</Text>
+              <Text style={styles.featureSubtitle}>Past conversations</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Recent Insight */}
+        {insights.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Latest Insight</Text>
+            <View style={styles.insightCard}>
+              <Ionicons name="bulb" size={20} color="#FF9800" />
+              <Text style={styles.insightText}>{insights[0]}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Setup Prompt */}
+        {!profile && (
+          <View style={styles.setupCard}>
+            <View style={styles.setupContent}>
+              <Ionicons name="person-circle" size={48} color="#667eea" />
+              <Text style={styles.setupTitle}>Set Up Your AI</Text>
+              <Text style={styles.setupText}>
+                Customize your Digital Twin's personality to get the most out of your conversations.
+              </Text>
+              <TouchableOpacity
+                style={styles.setupButton}
+                onPress={() => handleNavigation('personality')}
+              >
+                <Text style={styles.setupButtonText}>Get Started</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
@@ -409,84 +260,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  headerGradient: {
-    paddingTop: 16,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  header: {
-    paddingBottom: 10,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  welcomeSection: {
+  loadingContainer: {
     flex: 1,
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    letterSpacing: -0.5,
-  },
-  profileButton: {
-    marginLeft: 16,
-  },
-  profileAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: '#f8f9fa',
   },
-  statusCardsRow: {
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
+  },
+  header: {
+    backgroundColor: '#fff',
+    paddingTop: 10,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  headerStatusCard: {
-    width: (width - 60) / 3,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
   },
-  headerStatusValue: {
-    fontSize: 18,
-    fontWeight: '700',
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#1a1a1a',
-    marginTop: 4,
   },
-  headerStatusLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
@@ -494,230 +304,208 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
   },
-  statsRow: {
+  demoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  demoText: {
+    fontSize: 14,
+    color: '#1976D2',
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  mainActionCard: {
+    backgroundColor: '#667eea',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#667eea',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  mainActionContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    alignItems: 'center',
+  },
+  mainActionText: {
+    flex: 1,
+  },
+  mainActionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  mainActionSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  mainActionButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 16,
+    borderRadius: 12,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
   },
   statCard: {
-    width: (width - 60) / 3,
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
+    marginHorizontal: 4,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  statIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '600',
-    textAlign: 'center',
     marginBottom: 8,
   },
-  statTrend: {
-    flexDirection: 'row',
+  statContent: {
     alignItems: 'center',
-    marginTop: 8,
   },
-  statTrendText: {
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  statLabel: {
     fontSize: 12,
     color: '#666',
-    marginLeft: 4,
+    marginTop: 2,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 20,
-    letterSpacing: -0.5,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionCard: {
-    width: (width - 60) / 2,
     marginBottom: 16,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  featureCard: {
+    width: '48%',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    overflow: 'hidden',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  actionButton: {
-    padding: 20,
-  },
-  actionContent: {
-    alignItems: 'center',
-  },
-  actionIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  featureIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  actionTitle: {
+  featureTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 8,
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  actionSubtitle: {
-    fontSize: 13,
+  featureSubtitle: {
+    fontSize: 12,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 18,
-    fontWeight: '500',
   },
-  insightsCard: {
+  insightCard: {
+    flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 12,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  insightsHeader: {
-    flexDirection: 'row',
+  insightText: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    marginLeft: 12,
+    flex: 1,
+    lineHeight: 20,
+  },
+  setupCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  insightsIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-    justifyContent: 'center',
+  setupContent: {
     alignItems: 'center',
-    marginRight: 12,
   },
-  insightsTitle: {
+  setupTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
-    letterSpacing: -0.5,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  insightItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  insightIcon: {
-    marginRight: 12,
-    marginTop: 2,
-  },
-  insightText: {
-    fontSize: 15,
-    color: '#4a4a4a',
-    flex: 1,
-    lineHeight: 22,
-    fontWeight: '500',
-  },
-  statusCard: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 15,
-  },
-  statusGradient: {
-    padding: 28,
-  },
-  statusContent: {
-    alignItems: 'center',
-  },
-  statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  statusIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  statusTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: -0.5,
-  },
-  statusText: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 24,
-    fontWeight: '500',
-  },
-  statusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  statusIndicatorText: {
+  setupText: {
     fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  setupButton: {
+    backgroundColor: '#667eea',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  setupButtonText: {
     color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
   bottomSpacing: {
