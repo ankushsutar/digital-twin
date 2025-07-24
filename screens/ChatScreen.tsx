@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Button, FlatList } from 'react-native';
+import { Button, FlatList, TextInput, View } from 'react-native';
 import ChatBubble from '../components/ChatBubble';
 
 export default function ChatScreen() {
@@ -14,7 +14,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={{ flex: 1, padding: 10 }}>
       <FlatList
         data={messages}
         keyExtractor={(_, index) => index.toString()}

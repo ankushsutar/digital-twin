@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { openAIService } from '../../services/openai';
 import { useDigitalTwinStore } from '../../store/digitalTwinStore';
@@ -204,7 +204,7 @@ export default function InsightsScreen() {
           </View>
         </View>
 
-        <View style={styles.insightText}>
+        <View style={styles.insightTextContainer}>
           <Text style={styles.insightLabel}>
             You're actively engaging with your Digital Twin! 
             {stats.avgMessagesPerSession > 10 && ' You tend to have deep conversations.'}
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 10,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
   },
-  insightText: {
+  insightTextContainer: {
     backgroundColor: '#f8f9fa',
     padding: 12,
     borderRadius: 8,

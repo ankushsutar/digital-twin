@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useDigitalTwinStore } from '../../store/digitalTwinStore';
 import { DigitalTwinProfile } from '../../types/user';
@@ -196,6 +196,8 @@ export default function PersonalityScreen() {
     </View>
   );
 
+  const addGoalInputRef = useRef<TextInput>(null);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -254,12 +256,13 @@ export default function PersonalityScreen() {
           {personality.goals.length < 3 && (
             <View style={styles.addGoalContainer}>
               <TextInput
+                ref={addGoalInputRef}
                 style={styles.addGoalInput}
                 placeholder="Add a new goal..."
                 placeholderTextColor="#999"
                 onSubmitEditing={(e) => {
                   addGoal(e.nativeEvent.text);
-                  e.currentTarget.clear();
+                  addGoalInputRef.current?.clear();
                 }}
               />
             </View>
@@ -314,7 +317,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 10, // changed from 60 to 10
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -336,6 +339,7 @@ const styles = StyleSheet.create({
   section: {
     margin: 20,
     marginBottom: 10,
+    marginTop: 10, // ensure upper margin is 10
   },
   sectionTitle: {
     fontSize: 18,
@@ -399,6 +403,7 @@ const styles = StyleSheet.create({
   },
   goalsList: {
     gap: 8,
+    marginTop: 10, // add upper margin
   },
   goalItem: {
     flexDirection: 'row',
@@ -420,6 +425,7 @@ const styles = StyleSheet.create({
   },
   addGoalContainer: {
     marginTop: 12,
+    paddingTop: 10, // add upper padding
   },
   addGoalInput: {
     padding: 12,
@@ -432,7 +438,7 @@ const styles = StyleSheet.create({
   },
   saveSection: {
     margin: 20,
-    marginTop: 40,
+    marginTop: 10, // changed from 40 to 10
   },
   saveButton: {
     backgroundColor: '#667eea',
